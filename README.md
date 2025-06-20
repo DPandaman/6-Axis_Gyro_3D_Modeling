@@ -18,3 +18,10 @@ serial.log(",");
 serial.log(yaw\n);
 ```
 > (Example Serial print) PRY:-34.2,12.4,-76.9
+
+
+
+
+
+notes for DPandaman:
+ -> Update README for different 3-D models, filtering, delay vs tiner
