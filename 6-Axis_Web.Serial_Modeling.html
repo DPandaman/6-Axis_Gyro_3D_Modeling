@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PRY Display Test for 6-Axis Gyro</title>
+  <style>
+    body { 
+        margin: 0; 
+        overflow: hidden;
+    }
+  
+    #top {
+       position: absolute; top: 10px; left: 10px; z-index: 1;
+       display: flex;
+       align-items: center;
+       gap: 200px;
+       background-color: rgb(0, 0, 0);
+    }
+
+    #connect-btn {
+        padding: 10px 20px; font-size: 16px;
+    }
+
+    .numbers {
+        color: rgb(255, 255, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="top">
+    <button id="connect-btn">Connect</button>
+    <p class="numbers" id="pitch">Pitch: </p>
+    <p class="numbers" id="roll">Roll: </p>
+    <p class="numbers" id="yaw">Yaw: </p>
+  </div>
+  <canvas id="scene"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script>
+    // --- Three.js Scene Setup ---
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene') });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    const geometry = new THREE.BoxGeometry(3, 2, 1);
+    const material = new THREE.MeshNormalMaterial();
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+    camera.position.z = 3;
+
+    const pitchDisplay = document.getElementById("pitch");
+    const rollDisplay = document.getElementById("roll");
+    const yawDisplay = document.getElementById("yaw");
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    const btn = document.getElementById("connect-btn");
+    let reader;
+
+    btn.onclick = async () => {
+      if (!("serial" in navigator)) {
+        console.log("Nah Use Chrome");
+        return;
+      }
+
+      const port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+
+      const decoder = new TextDecoderStream();
+      const inputDone = port.readable.pipeTo(decoder.writable);
+      reader = decoder.readable.getReader();
+
+      readLoop();
+    };
+
+    function parsePRY(line) {
+        const match = line.match(/PRY:([-\d.]+),([-\d.]+),([-\d.]+)/);
+        if (match) {
+            const pitch = parseFloat(match[1]);
+            const roll = parseFloat(match[2]);
+            const yaw = parseFloat(match[3]);
+            return { pitch, roll, yaw };
+        }
+        return null;
+        }
+
+    async function readLoop() {
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const lines = value.split("\n");
+            for (const line of lines) {
+                const data = parsePRY(line.trim());
+                if (data) {
+                    cube.rotation.x = data.pitch * Math.PI / 180;
+                    cube.rotation.y = data.roll * Math.PI / 180;
+                    cube.rotation.z = data.yaw * Math.PI / 180;
+                // clean diagonal slashs above. kinda neat ngl
+
+                    pitchDisplay.innerHTML = "Pitch:" + data.pitch;
+                    rollDisplay.innerHTML = "Roll:" + data.roll;
+                    yawDisplay.innerHTML = "Yaw:" + data.yaw;
+                    
+                }
+            }
+        }
+    }
+  </script>
+</body>
+</html>
