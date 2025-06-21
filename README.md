@@ -17,7 +17,7 @@ serial.log(roll);
 serial.log(",");
 serial.log(yaw\n);
 ```
-> (Example Serial print) PRY:-34.2,12.4,-76.9 (make sure no spaces and new lines for each entry)
+> (Example Serial print) PRY:-34.2,12.4,-76.9 (no spaces + new line for each entry)
 
 
 Check out more details for instructions and modifications [here](https://dpandaman.github.io/projects/6-axis_gryo_visualizer.html)
