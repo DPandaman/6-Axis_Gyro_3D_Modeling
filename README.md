@@ -8,7 +8,7 @@ Requirements:
    + A Serial USB connection between your Accelerometer and PC
    + A Chromium-based browser (Chrome, Edge, Opera) to open this file. Safari, Firebox, and others are not supported
 
-***Due to the many acclerometers and programming options, make sure your serial prints are in this format!***
+***Due to the many acclerometers and programming options available, make sure your serial prints are in this general format!***
 ```
 serial.log("PRY:");
 serial.log(pitch);
@@ -17,7 +17,7 @@ serial.log(roll);
 serial.log(",");
 serial.log(yaw\n);
 ```
-> (Example Serial print) PRY:-34.2,12.4,-76.9
+> (Example Serial print) PRY:-34.2,12.4,-76.9 (make sure no spaces and new lines for each entry)
 
 
 Check out more details for instructions and customizing [here](https://dpandaman.github.io/projects/6-axis_gryo_visualizer.html)
