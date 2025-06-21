@@ -8,7 +8,7 @@ Requirements:
    + A Serial USB connection between your Accelerometer and PC
    + A Chromium-based browser (Chrome, Edge, Opera) to open this file. Safari, Firebox, and others are not supported
 
-***Due to the many acclerometers and programming options available, make sure your serial prints are in this general format!***
+***Due to the many acclerometers and programming options available, make sure your serial messages are in this general format!***
 ```
 serial.log("PRY:");
 serial.log(pitch);
