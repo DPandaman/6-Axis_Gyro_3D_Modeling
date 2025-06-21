@@ -20,8 +20,5 @@ serial.log(yaw\n);
 > (Example Serial print) PRY:-34.2,12.4,-76.9
 
 
+Check out more details for instructions and customizing [here](https://dpandaman.github.io/projects/6-axis_gryo_visualizer.html)
 
-
-
-notes for DPandaman:
- -> Update README for different 3-D models, filtering, delay vs tiner
