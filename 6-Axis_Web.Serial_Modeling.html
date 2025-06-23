@@ -1,123 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>PRY Display Test for 6-Axis Gyro</title>
+    <style>
+      body { 
+          margin: 0; 
+          overflow: hidden;
+      }
+    
+      #top {
+        position: absolute; top: 10px; left: 10px; z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 200px;
+        background-color: rgb(0, 0, 0);
+      }
+
+      #connect-btn {
+          padding: 10px 20px; font-size: 16px;
+      }
+
+      .numbers {
+          color: rgb(255, 255, 255);
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="top">
+      <button id="connect-btn">Connect</button>
+      <p class="numbers" id="pitch">Pitch: </p>
+      <p class="numbers" id="roll">Roll: </p>
+      <p class="numbers" id="yaw">Yaw: </p>
+    </div>
+    <canvas id="scene"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+      // --- Three.js Scene Setup ---
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene') });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // const geometry = new THREE.BoxGeometry(3, 2, 1);
+      // const material = new THREE.MeshNormalMaterial();
+      // const model = new THREE.Mesh(geometry, material);
+      // scene.add(model);
+
+
+      // increase to move further away
+      camera.position.z = 1;
+
+      const loader = new THREE.GLTFLoader();
+      let model;
+
+      loader.load("source/model.glb", function(gltf) {
+        model = gltf.scene;
+        console.log("d");
+        scene.add(model);
+      }, undefined, function(error) {
+        console.error('Error loading model:', error);
+      });
+
+  
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(5, 5, 5).normalize();
+      scene.add(light);
+
+      const pitchDisplay = document.getElementById("pitch");
+      const rollDisplay = document.getElementById("roll");
+      const yawDisplay = document.getElementById("yaw");
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      const btn = document.getElementById("connect-btn");
+      let reader;
+
+      btn.onclick = async () => {
+        if (!("serial" in navigator)) {
+          console.log("Nah Use Chrome");
+          return;
+        }
+
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+
+        const decoder = new TextDecoderStream();
+        const inputDone = port.readable.pipeTo(decoder.writable);
+        reader = decoder.readable.getReader();
+
+        readLoop();
+      };
+
+      function parsePRY(line) {
+        const match = line.match(/PRY:([-\d.]+),([-\d.]+),([-\d.]+)/);
+        if (match) {
+          const pitch = parseFloat(match[1]);
+          const roll = parseFloat(match[2]);
+          const yaw = parseFloat(match[3]);
+          return { pitch, roll, yaw };
+        }
+        return null;
+      }
+
+      async function readLoop() {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
+          const lines = value.split("\n");
+          for (const line of lines) {
+            const data = parsePRY(line.trim());
+            if (data) {
+              // cube.rotation.x = data.pitch * Math.PI / 180;
+              // cube.rotation.y = data.roll * Math.PI / 180;
+              // cube.rotation.z = data.yaw * Math.PI / 180;
+              // clean diagonal slashs above. kinda neat ngl
+              model.rotation.x = data.pitch * Math.PI / 180;
+              model.rotation.y = data.roll * Math.PI / 180;
+              model.rotation.z = data.yaw * Math.PI / 180;
+
+              pitchDisplay.innerHTML = "Pitch:" + data.pitch;
+              rollDisplay.innerHTML = "Roll:" + data.roll;
+              yawDisplay.innerHTML = "Yaw:" + data.yaw;    
+            }
+          }
+        }
+      }
+    </script>
+  </body>
+</html> 
+
+<!-- <!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PRY Display Test for 6-Axis Gyro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Trajectory Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <style>
-    body { 
-        margin: 0; 
-        overflow: hidden;
-    }
-  
-    #top {
-       position: absolute; top: 10px; left: 10px; z-index: 1;
-       display: flex;
-       align-items: center;
-       gap: 200px;
-       background-color: rgb(0, 0, 0);
-    }
-
-    #connect-btn {
-        padding: 10px 20px; font-size: 16px;
-    }
-
-    .numbers {
-        color: rgb(255, 255, 255);
-        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        font-size: 20px;
-    }
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; position: fixed; bottom: 10px; right: 10px; width: 50vw; height: 50vh;}
   </style>
 </head>
 <body>
-  <div id="top">
-    <button id="connect-btn">Connect</button>
-    <p class="numbers" id="pitch">Pitch: </p>
-    <p class="numbers" id="roll">Roll: </p>
-    <p class="numbers" id="yaw">Yaw: </p>
-  </div>
-  <canvas id="scene"></canvas>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script>
-    // --- Three.js Scene Setup ---
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene') });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+<script>
+  // Create a basic scene setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.5);
+  document.body.appendChild(renderer.domElement);
 
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+  // Create a line material and geometry
+  const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
 
-    const geometry = new THREE.BoxGeometry(3, 2, 1);
-    const material = new THREE.MeshNormalMaterial();
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-    camera.position.z = 3;
+  // Sample data for pitch, roll, and yaw (in radians)
+  const trajectoryData = [
+    { pitch: Math.PI / 4, roll: 0, yaw: 0 },
+    { pitch: Math.PI / 4, roll: Math.PI / 6, yaw: Math.PI / 6 },
+    { pitch: Math.PI / 3, roll: Math.PI / 3, yaw: Math.PI / 4 },
+    // Add more data points...
+  ];
 
-    const pitchDisplay = document.getElementById("pitch");
-    const rollDisplay = document.getElementById("roll");
-    const yawDisplay = document.getElementById("yaw");
+  // Function to convert pitch, roll, and yaw to 3D coordinates
+  function convertTo3D(pitch, roll, yaw) {
+    // Apply rotation matrix to convert the angles to 3D position
+    const x = Math.sin(pitch) * Math.cos(yaw);
+    const y = Math.sin(roll) * Math.sin(pitch);
+    const z = Math.cos(pitch) * Math.cos(yaw);
 
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
+    return [x * 50, y * 50, z * 50]; // Scale by a factor of 50 for better visibility
+  }
 
-    const btn = document.getElementById("connect-btn");
-    let reader;
+  // Generate the trajectory points based on the data
+  trajectoryData.forEach(({ pitch, roll, yaw }) => {
+    const [x, y, z] = convertTo3D(pitch, roll, yaw);
+    positions.push(x, y, z);
+  });
 
-    btn.onclick = async () => {
-      if (!("serial" in navigator)) {
-        console.log("Nah Use Chrome");
-        return;
-      }
+  // Set the positions in the geometry
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
 
-      const port = await navigator.serial.requestPort();
-      await port.open({ baudRate: 115200 });
+  // Create the line and add it to the scene
+  const line = new THREE.Line(geometry, material);
+  scene.add(line);
 
-      const decoder = new TextDecoderStream();
-      const inputDone = port.readable.pipeTo(decoder.writable);
-      reader = decoder.readable.getReader();
+  // Position the camera
+  camera.position.z = 150;
 
-      readLoop();
-    };
+  // Render the scene
+  function animate() {
+    requestAnimationFrame(animate);
 
-    function parsePRY(line) {
-        const match = line.match(/PRY:([-\d.]+),([-\d.]+),([-\d.]+)/);
-        if (match) {
-            const pitch = parseFloat(match[1]);
-            const roll = parseFloat(match[2]);
-            const yaw = parseFloat(match[3]);
-            return { pitch, roll, yaw };
-        }
-        return null;
-        }
+    // Rotate the scene for better view
+    line.rotation.x += 0.01;
+    line.rotation.y += 0.01;
 
-    async function readLoop() {
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const lines = value.split("\n");
-            for (const line of lines) {
-                const data = parsePRY(line.trim());
-                if (data) {
-                    cube.rotation.x = data.pitch * Math.PI / 180;
-                    cube.rotation.y = data.roll * Math.PI / 180;
-                    cube.rotation.z = data.yaw * Math.PI / 180;
-                // clean diagonal slashs above. kinda neat ngl
+    renderer.render(scene, camera);
+  }
+  animate();
+</script>
 
-                    pitchDisplay.innerHTML = "Pitch:" + data.pitch;
-                    rollDisplay.innerHTML = "Roll:" + data.roll;
-                    yawDisplay.innerHTML = "Yaw:" + data.yaw;
-                    
-                }
-            }
-        }
-    }
-  </script>
 </body>
-</html>
+</html> -->
