@@ -52,30 +52,14 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      // const geometry = new THREE.BoxGeometry(3, 2, 1);
-      // const material = new THREE.MeshNormalMaterial();
-      // const model = new THREE.Mesh(geometry, material);
-      // scene.add(model);
+      const geometry = new THREE.BoxGeometry(3, 2, 1);
+      const material = new THREE.MeshNormalMaterial();
+      const model = new THREE.Mesh(geometry, material);
+      scene.add(model);
 
 
       // increase to move further away
-      camera.position.z = 1;
-
-      const loader = new THREE.GLTFLoader();
-      let model;
-
-      loader.load("source/model.glb", function(gltf) {
-        model = gltf.scene;
-        console.log("d");
-        scene.add(model);
-      }, undefined, function(error) {
-        console.error('Error loading model:', error);
-      });
-
-  
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(5, 5, 5).normalize();
-      scene.add(light);
+      camera.position.z = 3;
 
       const pitchDisplay = document.getElementById("pitch");
       const rollDisplay = document.getElementById("roll");
@@ -127,10 +111,7 @@
           for (const line of lines) {
             const data = parsePRY(line.trim());
             if (data) {
-              // cube.rotation.x = data.pitch * Math.PI / 180;
-              // cube.rotation.y = data.roll * Math.PI / 180;
-              // cube.rotation.z = data.yaw * Math.PI / 180;
-              // clean diagonal slashs above. kinda neat ngl
+              // clean diagonal slashs below. kinda neat ngl
               model.rotation.x = data.pitch * Math.PI / 180;
               model.rotation.y = data.roll * Math.PI / 180;
               model.rotation.z = data.yaw * Math.PI / 180;
@@ -145,80 +126,3 @@
     </script>
   </body>
 </html> 
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Trajectory Graph</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; position: fixed; bottom: 10px; right: 10px; width: 50vw; height: 50vh;}
-  </style>
-</head>
-<body>
-
-<script>
-  // Create a basic scene setup
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth * 0.5, window.innerHeight * 0.5);
-  document.body.appendChild(renderer.domElement);
-
-  // Create a line material and geometry
-  const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-  const geometry = new THREE.BufferGeometry();
-  const positions = [];
-
-  // Sample data for pitch, roll, and yaw (in radians)
-  const trajectoryData = [
-    { pitch: Math.PI / 4, roll: 0, yaw: 0 },
-    { pitch: Math.PI / 4, roll: Math.PI / 6, yaw: Math.PI / 6 },
-    { pitch: Math.PI / 3, roll: Math.PI / 3, yaw: Math.PI / 4 },
-    // Add more data points...
-  ];
-
-  // Function to convert pitch, roll, and yaw to 3D coordinates
-  function convertTo3D(pitch, roll, yaw) {
-    // Apply rotation matrix to convert the angles to 3D position
-    const x = Math.sin(pitch) * Math.cos(yaw);
-    const y = Math.sin(roll) * Math.sin(pitch);
-    const z = Math.cos(pitch) * Math.cos(yaw);
-
-    return [x * 50, y * 50, z * 50]; // Scale by a factor of 50 for better visibility
-  }
-
-  // Generate the trajectory points based on the data
-  trajectoryData.forEach(({ pitch, roll, yaw }) => {
-    const [x, y, z] = convertTo3D(pitch, roll, yaw);
-    positions.push(x, y, z);
-  });
-
-  // Set the positions in the geometry
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-  // Create the line and add it to the scene
-  const line = new THREE.Line(geometry, material);
-  scene.add(line);
-
-  // Position the camera
-  camera.position.z = 150;
-
-  // Render the scene
-  function animate() {
-    requestAnimationFrame(animate);
-
-    // Rotate the scene for better view
-    line.rotation.x += 0.01;
-    line.rotation.y += 0.01;
-
-    renderer.render(scene, camera);
-  }
-  animate();
-</script>
-
-</body>
-</html> -->
