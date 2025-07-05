@@ -2,13 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>PRY Display Test for 6-Axis Gyro</title>
+    <title>PRY Display for 6-Axis Gyro</title>
+    <link rel="icon" type="image/x-icon" href="favicon (2).png">
     <style>
       body { 
-          margin: 0; 
-          overflow: hidden;
+        margin: 0; 
+        overflow: hidden;
       }
-    
+
       #top {
         position: absolute; top: 10px; left: 10px; z-index: 1;
         display: flex;
@@ -18,14 +19,109 @@
       }
 
       #connect-btn {
-          padding: 10px 20px; font-size: 16px;
+        padding: 10px 20px; font-size: 16px;
+        border-radius: 10px;
+        color: rgb(255, 255, 255);
+        background-color: rgb(0, 0, 0);
+        border: 2px solid #fff;
+        cursor: pointer;
       }
 
-      .numbers {
-          color: rgb(255, 255, 255);
-          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-          font-size: 20px;
+      #connect-btn:hover {
+        color: rgb(0, 0, 0);
+        background-color: rgb(255, 255, 255);
+        border: 2px solid #000;
+        cursor: pointer;
       }
+
+
+      .numbers {
+        color: rgb(255, 255, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 20px;
+      }
+
+      #pitch {
+        margin-left: 20%;
+      }
+
+      .label {
+        color: rgb(255, 255, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+
+      .labelHolder {
+        display: flex;
+        align-items: center;
+      }
+
+      .labelHolder p {
+        color:rgb(255, 255, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+
+      #sliders a {
+        margin-top: 5%;
+        color:rgb(255, 255, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+
+      #sliders a:hover {
+        color: rgb(242, 231, 15)
+      }
+
+      #sliders {
+        position: absolute; top: 80px; left: 10px; z-index: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #export {
+        padding: 10px 20px; font-size: 16px;
+        border-radius: 10px;
+        color: rgb(255, 255, 255);
+        background-color: rgb(0, 0, 0);
+        border: 2px solid #fff;
+        cursor: pointer;
+      }
+
+      #export:hover {
+        color: rgb(0, 0, 0);
+        background-color: rgb(255, 255, 255);
+        border: 2px solid #000;
+        cursor: pointer;
+      }
+
+      #connect-btn:active, #export:active {
+        color: rgb(255, 255, 255);
+        background-color: rgb(0, 0, 0);
+        border: 2px solid #fff;
+      }
+
+      #filters {
+        z-index: 1;
+        background-color: rgb(0,0,0);
+        border-radius: 8px;
+        color: white;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 16px;
+        user-select: none;
+      }
+      #filters label {
+        display: block;
+        cursor: pointer;
+      }
+      #filters input[type="radio"] {
+        margin-right: 8px;
+        cursor: pointer;
+      }
+
+      canvas { 
+        display: block; 
+        position: fixed; 
+          bottom: 0px; right: 00px; 
+          width: 30vw; height: 30vh;
+      }  
     </style>
   </head>
   <body>
@@ -33,29 +129,103 @@
       <button id="connect-btn">Connect</button>
       <p class="numbers" id="pitch">Pitch: </p>
       <p class="numbers" id="roll">Roll: </p>
-      <p class="numbers" id="yaw">Yaw: </p>
+      <p class="numbers" id="yaw">Yaw: </p>      
     </div>
+    <div id="sliders">
+      <div class="labelHolder">
+        <label for="zoom" class="label">Zoom:&nbsp;</label>
+        <p id="zoomNum"> [NaN] </p>
+      </div>
+      <input type="range" min="1" max="25" value="1" id="zoom">
+      <div class="labelHolder">
+        <label for="scale" class="label">Scale:&nbsp;</label>
+        <p id="scaleNum"> [NaN] </p>
+      </div>
+      <input type="range" min="0" max="20" step="0.1" value="0.1" id="scale">
+      <div class="labelHolder">
+        <label for="lighting" class="label">Lighting:&nbsp;</label>
+        <p id="lightingNum"> [NaN] </p>
+      </div>
+      <input type="range" min="0" max="5" value="0" step="0.1" id="lighting">
+
+      <div id="filters">
+        <p class="label">Filter:</p>
+        <label><input type="radio" name="filter" value="none" checked> None</label><br>
+        <label><input type="radio" name="filter" value="lowpass"> Low Pass Filter</label><br>
+        <label><input type="radio" name="filter" value="movingavg"> Moving Average</label>
+      </div>
+
+
+      <button id="export" style="position: fixed; bottom: 40px; left: 10px;">Export</button> 
+
+      <a href="https://dpandaman.github.io/projects/6-axis_gyro_visualizer.html" style="position: fixed; bottom: 10px; left: 10px;" target="_blank">Having trouble?</a>
+    </div>
+
+    
+
     <canvas id="scene"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/loaders/GLTFLoader.js"></script>
     <script>
-      // --- Three.js Scene Setup ---
+      // FOR MODEL
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
       const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene') });
+      let started = false;
       renderer.setSize(window.innerWidth, window.innerHeight);
 
+
       window.addEventListener("resize", () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      const geometry = new THREE.BoxGeometry(3, 2, 1);
-      const material = new THREE.MeshNormalMaterial();
-      const model = new THREE.Mesh(geometry, material);
-      scene.add(model);
+      var initialScale = 0.1;
+      document.getElementById("scaleNum").innerHTML = initialScale;
+      var initialZoom = 20;
+      document.getElementById("zoomNum").innerHTML = initialZoom;
+      document.getElementById("zoom").value = initialZoom;
+      var initialLighting = 1;
+      document.getElementById("lightingNum").innerHTML = initialLighting;
+      document.getElementById("lighting").value = initialLighting;
+
+      // const geometry = new THREE.BoxGeometry(3, 2, 1);
+      // const material = new THREE.MeshNormalMaterial();
+      // const model = new THREE.Mesh(geometry, material);
+      // scene.add(model);
+      // model.position.set(0, 0, 0);
+
+      const loader = new THREE.GLTFLoader();
+      let model;
+      
+
+      loader.load("source/drone.glb", function(gltf) {
+          model = gltf.scene;
+          model.scale.set(initialScale, initialScale, initialScale); // Adjust scale if necessary
+          // x, y, z (close or further is z)
+          model.position.set(0, -3, -15);
+          scene.add(model);
+      }, undefined, function(error) {
+          console.error('Error loading model:', error);
+      });
+
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(20, 20, 20).normalize();
+      scene.add(light);
+
+      const light2 = new THREE.DirectionalLight(0xffffff, 1);
+      light2.position.set(-3, 5, -15).normalize();
+      scene.add(light2);
+
+      const light3 = new THREE.DirectionalLight(0xffffff, 1);
+      light3.position.set(3, 5, -15).normalize();
+      scene.add(light3);
+
+      let livePitch = 0;
+      let liveRoll = 0;
+      let liveYaw = 0;
 
 
       // increase to move further away
@@ -66,63 +236,314 @@
       const yawDisplay = document.getElementById("yaw");
 
       function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
       }
+
       animate();
 
       const btn = document.getElementById("connect-btn");
       let reader;
 
       btn.onclick = async () => {
-        if (!("serial" in navigator)) {
-          console.log("Nah Use Chrome");
-          return;
-        }
+          if (!("serial" in navigator)) {
+              console.log("Nah Use Chrome");
+              return;
+          }
 
-        const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
-
-        const decoder = new TextDecoderStream();
-        const inputDone = port.readable.pipeTo(decoder.writable);
-        reader = decoder.readable.getReader();
-
-        readLoop();
+          const port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 });
+          console.log("Connected");
+          const decoder = new TextDecoderStream();
+          const inputDone = port.readable.pipeTo(decoder.writable);
+          reader = decoder.readable.getReader();
+          started = true;
+          readLoop();
       };
 
       function parsePRY(line) {
-        const match = line.match(/PRY:([-\d.]+),([-\d.]+),([-\d.]+)/);
-        if (match) {
-          const pitch = parseFloat(match[1]);
-          const roll = parseFloat(match[2]);
-          const yaw = parseFloat(match[3]);
-          return { pitch, roll, yaw };
-        }
-        return null;
+          const match = line.match(/PRY:([-\d.]+),([-\d.]+),([-\d.]+)/);
+          if (match) {
+              const pitch = parseFloat(match[1]);
+              const roll = parseFloat(match[2]);
+              const yaw = parseFloat(match[3]);
+              return { pitch, roll, yaw };
+          }
+          return null;
       }
 
       async function readLoop() {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) {
-            break;
-          }
-          const lines = value.split("\n");
-          for (const line of lines) {
-            const data = parsePRY(line.trim());
-            if (data) {
-              // clean diagonal slashs below. kinda neat ngl
-              model.rotation.x = data.pitch * Math.PI / 180;
-              model.rotation.y = data.roll * Math.PI / 180;
-              model.rotation.z = data.yaw * Math.PI / 180;
+          while (true) {
+              const { value, done } = await reader.read();
+              if (done) {
+                  break;
+              }
+              const lines = value.split("\n");
+              for (const line of lines) {
+                  const data = parsePRY(line.trim());
+                  if (data) {
+                      // clean diagonal slashs below. kinda neat ngl
+                      model.rotation.x = data.pitch * Math.PI / 180;
+                      model.rotation.y = data.roll * Math.PI / 180;
+                      model.rotation.z = data.yaw * Math.PI / 180;
 
-              pitchDisplay.innerHTML = "Pitch:" + data.pitch;
-              rollDisplay.innerHTML = "Roll:" + data.roll;
-              yawDisplay.innerHTML = "Yaw:" + data.yaw;    
-            }
+                      livePitch = data.pitch;
+                      liveRoll = data.yaw;
+                      liveYaw = data.roll;
+
+                      pitchDisplay.innerHTML = "Pitch:" + data.pitch;
+                      rollDisplay.innerHTML = "Roll:" + data.yaw;
+                      yawDisplay.innerHTML = "Yaw:" + data.roll;    
+                  }
+              }
           }
+      }
+
+      document.getElementById("zoom").addEventListener("input", function() {
+        camera.position.z = 25 - this.value;
+        document.getElementById("zoomNum").innerHTML = this.value;
+        console.log("got it");
+      });
+
+      document.getElementById("scale").addEventListener("input", function() {
+        model.scale.set(this.value, this.value, this.value);
+        document.getElementById("scaleNum").innerHTML = this.value;
+        console.log("scale it");
+      });
+
+      document.getElementById("lighting").addEventListener("input", function() {
+        light.intensity = this.value;
+        document.getElementById("lightingNum").innerHTML = this.value;
+        console.log("lighting");
+      });
+
+
+
+
+
+      // FOR GRAPH
+      const graphScene = new THREE.Scene();
+      const camera2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer2 = new THREE.WebGLRenderer();
+      renderer2.setSize(window.innerWidth * 0.3, window.innerHeight * 0.3);
+      document.body.appendChild(renderer2.domElement);
+
+      // Create a line material and geometry
+      const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+      const geometry = new THREE.BufferGeometry();
+      const positions = [];
+
+      // Sample data for pitch, roll, and yaw (in radians)
+      const trajectoryData = [
+        { pitch: Math.PI / 4, roll: 0, yaw: 0 },
+        { pitch: Math.PI / 4, roll: Math.PI / 6, yaw: Math.PI / 6 },
+        { pitch: Math.PI / 3, roll: Math.PI / 3, yaw: Math.PI / 4 },
+        // Add more data points...
+      ];
+
+      // Function to convert pitch, roll, and yaw to 3D coordinates
+      function convertTo3D(pitch, roll, yaw) {
+        // Apply rotation matrix to convert the angles to 3D position
+        const x = Math.sin(pitch) * Math.cos(yaw);
+        const y = Math.sin(roll) * Math.sin(pitch);
+        const z = Math.cos(pitch) * Math.cos(yaw);
+
+        return [x * 50, y * 50, z * 50]; // Scale by a factor of 50 for better visibility
+      }
+
+      function getDirectionFromPRY(pitchDeg, rollDeg, yawDeg) {
+        const pitch = pitchDeg * Math.PI / 180;
+        const roll = rollDeg * Math.PI / 180;
+        const yaw = yawDeg * Math.PI / 180;
+
+        // Rotation order: Roll (X), Pitch (Y), Yaw (Z)
+        const euler = new THREE.Euler(roll, pitch, yaw, 'ZYX');
+
+        const direction = new THREE.Vector3(0, 0, 1); // Facing "forward"
+        direction.applyEuler(euler); // Apply combined rotation
+
+        return direction;
+      }
+
+      // Generate the trajectory points based on the data
+      trajectoryData.forEach(({ pitch, roll, yaw }) => {
+        const [x, y, z] = convertTo3D(pitch, roll, yaw);
+        positions.push(x, y, z);
+      });
+
+      // Set the positions in the geometry
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+      function createAxis() {
+        // const materialX = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        // const geometryX = new THREE.BufferGeometry();
+        // const lineX = new THREE.Line(geometry, material);
+        // graphScene.add(lineX);
+
+        // const materialY = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+        // const geometryY = new THREE.BufferGeometry();
+        // const lineY = new THREE.Line(geometry, material);
+        // graphScene.add(lineY);
+
+        // const materialZ = new THREE.LineBasicMaterial({ color: 0x0000ff });
+        // const geometryZ = new THREE.BufferGeometry();
+        // const lineZ = new THREE.Line(geometry, material);
+        // graphScene.add(lineZ);
+
+        const axesHelper = new THREE.AxesHelper(50);
+        graphScene.add(axesHelper);
+      }
+      
+      const line = new THREE.Line(geometry, material);
+      graphScene.add(line);
+      createAxis();
+
+      const geometry3 = new THREE.SphereGeometry( 1, 32, 16 ); 
+      const material3 = new THREE.MeshBasicMaterial( { color: 0xffff00 } ); 
+      const sphere = new THREE.Mesh( geometry3, material3); 
+      sphere.position.set(0, 0, 0);
+      graphScene.add(sphere);
+
+      // Position the camera
+      // camera2.position.z = 150;
+      camera2.position.set(-10, -10, -10);
+      camera2.lookAt(50, 50, 50); 
+
+      x = 0;
+      y = 0; 
+      let toReturn = false;
+      positions5 = [];
+      let csvLog = [];
+      let lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+      let lineGeometry = new THREE.BufferGeometry();
+      let trajLine = new THREE.Line(lineGeometry, lineMaterial);
+      
+      graphScene.add(trajLine);
+
+      function animate2() {
+        // requestAnimationFrame(animate2);
+
+        // // Rotate the scene for better view
+        // line.rotation.x += 0.01;
+        // line.rotation.y += 0.01;
+
+
+        // // sphere.position.set(x, y, 0);
+        // // sphere.position.x += (Math.random() - 0.5) * 0.7; // Random movement in x-axis
+        // // sphere.position.y += (Math.random() - 0.5) * 0.7; // Random movement in y-axis
+        // // sphere.position.z += (Math.random() - 0.5) * 0.7;
+
+        // sphere.position.x += yaw1;
+
+        // let currentPos = sphere.position;
+
+        // // Store this position in the positions array
+        // positions5.push(currentPos.clone());
+
+        // // Update the line geometry with the new positions
+        // lineGeometry.setFromPoints(positions5);
+        // // console.log("x: " + x);
+
+
+        // if (toReturn == false) {
+        //   x += 0.1;
+        //   y += 0.1;
+        // } else {
+        //   x -= 0.1;
+        //   y -= 0.1;
+        // }
+
+        // if (Math.floor(x) == 10) {
+        //   toReturn = true;
+        // } else if (Math.floor(x) == 0) {
+        //   toReturn = false;
+        // }
+
+        // renderer2.render(graphScene, camera2);
+
+        requestAnimationFrame(animate2);
+
+        if (started) {
+        // Compute movement direction from PRY
+          const direction = getDirectionFromPRY(livePitch, liveRoll, liveYaw);
+
+          // Scale for movement speed
+          const step = direction.multiplyScalar(0.5); // adjust 0.5 as needed
+
+          // Move the sphere
+          sphere.position.add(step);
+
+          // Store the current position
+          positions5.push(sphere.position.clone());
+
+          // Keep array size reasonable
+          if (positions5.length > 1000) {
+            positions5.shift();
+          }
+
+          if (csvLog.length > 20000) {
+            csvLog.shift();
+          }
+          // Update the trajectory line
+          lineGeometry.setFromPoints(positions5);
+
+          // Optional: rotate the whole scene for effect
+          // trajLine.rotation.x += 0.005;
+          // trajLine.rotation.y += 0.005;
+
+          renderer2.render(graphScene, camera2);
+
+          csvLog.push({
+            time: performance.now() / 1000,
+            pitch: livePitch,
+            roll: liveRoll,
+            yaw: liveYaw,
+            x: sphere.position.x,
+            y: sphere.position.y,
+            z: sphere.position.z
+          });
         }
       }
+      animate2();
+
+
+
+
+
+
+
+
+
+      function arrayToCSV(dataArray) {
+        const header = ["Time", "Pitch", "Roll", "Yaw", "PosX", "PosY", "PosZ"];
+        const rows = dataArray.map(obj =>
+          [obj.time.toFixed(2), obj.pitch, obj.roll, obj.yaw, obj.x, obj.y, obj.z]
+        );
+        return [header, ...rows].map(row => row.join(",")).join("\n");
+      }
+
+      function downloadCSV(csvString, filename = "flight_data.csv") {
+        const blob = new Blob([csvString], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      document.getElementById("export").addEventListener("click", () => {
+        if (!started) {
+          alert("No data to export yet.");
+        } else {
+          const csv = arrayToCSV(csvLog);
+          downloadCSV(csv);
+        }
+      });
+
     </script>
   </body>
-</html> 
+</html>  
